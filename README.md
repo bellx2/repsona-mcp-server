@@ -32,6 +32,26 @@ npm run start
 npm run dev
 ```
 
+## Desktop Extensions (DXT) での利用
+
+### DXTファイルのビルド
+
+DXT（Desktop Extensions）として配布するためのファイルを作成する方法：
+
+```bash
+# DXTファイルをビルド
+npx dxt build
+
+# または、手動でzipファイルを作成
+zip -r repsona-mcp-server.dxt manifest.json index.js package.json package-lock.json node_modules/
+```
+
+### DXTファイルのインストール
+
+1. ビルドされた `repsona-mcp-server.dxt` ファイルを取得
+2. Claude Desktop で DXT ファイルをインストール
+3. 設定画面でRepsona Space IDとAPI Keyを入力
+
 ## Claude Desktop での設定
 
 Claude Desktop でこのMCPサーバーを使用するには、設定ファイルに以下を追加してください：
