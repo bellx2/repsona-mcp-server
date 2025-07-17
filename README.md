@@ -160,6 +160,11 @@ https://repsona.com/ja/api
    - Settings > Secrets and variables > Actions
    - `NPM_TOKEN`という名前でトークンを追加
 
+3. GitHub Actionsの権限設定（重要）
+   - Settings > Actions > General > Workflow permissions
+   - 「Read and write permissions」を選択
+   - 「Allow GitHub Actions to create and approve pull requests」をチェック
+
 #### 公開方法
 
 1. **手動でバージョンを更新して公開**
