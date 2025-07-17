@@ -33,7 +33,7 @@ Claude Desktop でこのMCPサーバーを使用するには、設定ファイ�
   "mcpServers": {
     "repsona": {
       "command": "npx",
-      "args": ["@bellx2/repsona-mcp-server"],
+      "args": ["-y", "@bellx2/repsona-mcp-server"],
       "env": {
         "REPSONA_SPACE_ID": "your_space_id",
         "REPSONA_API_KEY": "your_api_key"
@@ -51,7 +51,7 @@ VSCodeでこのMCPサーバーを使用するには、以下の設定を`setting
   "mcpServers": {
     "repsona": {
       "command": "npx",
-      "args": ["@bellx2/repsona-mcp-server"],
+      "args": ["-y", "@bellx2/repsona-mcp-server"],
       "env": {
         "REPSONA_SPACE_ID": "your_space_id",
         "REPSONA_API_KEY": "your_api_key"
