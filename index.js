@@ -10,11 +10,8 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import dotenv from 'dotenv';
 
-// .envファイルを読み込む（出力を抑制）
-const originalLog = console.log;
-console.log = () => {};
-dotenv.config();
-console.log = originalLog;
+// .envファイルを読み込む（静かに）
+dotenv.config({ quiet: true, debug: false });
 
 // 日付処理ヘルパー関数
 function parseDate(dateInput) {
@@ -1868,6 +1865,26 @@ class RepsonaMCPServer {
   }
 }
 
+// プロセスエラーハンドリング
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 // サーバーの起動
-const server = new RepsonaMCPServer();
-server.run().catch(console.error);
+try {
+  console.error('Starting Repsona MCP Server...');
+  const server = new RepsonaMCPServer();
+  server.run().catch((error) => {
+    console.error('Server error:', error);
+    process.exit(1);
+  });
+} catch (error) {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+}
