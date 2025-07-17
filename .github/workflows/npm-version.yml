@@ -56,7 +56,8 @@ jobs:
 
       - name: Build DXT package
         run: |
-          npx -y @anthropic-ai/dxt pack
+          npm install
+          npx @anthropic-ai/dxt pack
           ls -la *.dxt
 
       - name: Create Release with DXT
