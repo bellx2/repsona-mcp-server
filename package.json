@@ -1,19 +1,36 @@
 {
-  "name": "repsona-mcp-server",
-  "main": "index.js",
+  "name": "@bellx2/repsona-mcp-server",
+  "version": "1.0.2",
+  "description": "Repsona MCP Server",
+  "homepage": "https://github.com/bellx2/repsona-mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/bellx2/repsona-mcp-server/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bellx2/repsona-mcp-server.git"
+  },
+  "license": "ISC",
+  "author": "Ryu Tanabe",
   "type": "module",
-  "private": true,
+  "main": "index.js",
+  "bin": {
+    "repsona-mcp-server": "./index.js"
+  },
+  "files": [
+    "index.js"
+  ],
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
     "test": "node --test",
     "inspect": "DANGEROUSLY_OMIT_AUTH=true npx @modelcontextprotocol/inspector stdio -- node index.js"
   },
-  "devDependencies": {
-    "@modelcontextprotocol/inspector": "^0.16.1"
-  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.15.1",
     "dotenv": "^17.2.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/inspector": "^0.16.1"
   }
 }
