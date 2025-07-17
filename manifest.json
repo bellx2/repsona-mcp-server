@@ -1,11 +1,9 @@
 {
   "dxt_version": "0.1",
-  "name": "repsona-mcp-server",
-  "version": "1.0.0",
+  "name": "@bellx2/repsona-mcp-server",
+  "version": "1.0.4",
   "description": "Repsona MCP Server",
-  "author": {
-    "name": "Bellx2"
-  },
+  "author": "Ryu Tanabe",
   "repository": {
     "type": "git",
     "url": "https://github.com/bellx2/repsona-mcp-server"
@@ -81,5 +79,5 @@
       }
     }
   },
-  "license": "MIT"
+  "license": "ISC"
 }

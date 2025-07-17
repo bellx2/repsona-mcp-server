@@ -40,6 +40,16 @@ jobs:
         run: |
           npm version ${{ github.event.inputs.version_type }} -m "chore: bump version to %s"
 
+      - name: Update manifest.json version
+        run: |
+          # package.jsonから新しいバージョンを取得
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          # manifest.jsonのバージョンを更新
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" manifest.json
+          # 変更をコミット
+          git add manifest.json
+          git commit -m "chore: update manifest.json version to $NEW_VERSION"
+
       - name: Push changes
         run: |
           git push origin main --follow-tags
