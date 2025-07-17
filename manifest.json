@@ -1,0 +1,85 @@
+{
+  "dxt_version": "0.1",
+  "name": "repsona-mcp-server",
+  "version": "1.0.4",
+  "description": "Repsona MCP Server",
+  "author": {
+    "name": "Ryu Tanabe"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bellx2/repsona-mcp-server"
+  },
+  "tools": [
+    {
+      "name": "get_tasks",
+      "description": "指定したプロジェクトのタスク一覧を取得"
+    },
+    {
+      "name": "create_task",
+      "description": "新しいタスクを作成"
+    },
+    {
+      "name": "update_task",
+      "description": "タスクを更新"
+    },
+    {
+      "name": "delete_task",
+      "description": "タスクを削除"
+    },
+    {
+      "name": "get_projects",
+      "description": "参加しているプロジェクトの一覧を取得"
+    },
+    {
+      "name": "create_project",
+      "description": "新しいプロジェクトを作成"
+    },
+    {
+      "name": "get_notes",
+      "description": "ノートの一覧を取得"
+    },
+    {
+      "name": "create_note",
+      "description": "新しいノートを作成"
+    },
+    {
+      "name": "get_inbox",
+      "description": "受信トレイを取得"
+    },
+    {
+      "name": "upload_file",
+      "description": "ファイルをアップロード"
+    }
+  ],
+  "user_config": {
+    "space_id": {
+      "type": "string",
+      "title": "Repsona Space ID",
+      "description": "RepsonaのスペースID",
+      "required": true
+    },
+    "api_key": {
+      "type": "string",
+      "title": "Repsona API Key",
+      "description": "RepsonaのAPIキー",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/index.js"
+      ],
+      "env": {
+        "REPSONA_SPACE_ID": "${user_config.space_id}",
+        "REPSONA_API_KEY": "${user_config.api_key}"
+      }
+    }
+  },
+  "license": "ISC"
+}
