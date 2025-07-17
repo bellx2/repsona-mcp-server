@@ -330,16 +330,6 @@ class RepsonaAPI {
     return this.makeRequest('/inbox/unread_count');
   }
 
-  //自分関連のメソッド
-
-  async getMembers() {
-    return this.makeRequest('/me');
-  }
-
-  async getMember(memberId) {
-    return this.makeRequest(`/me`);
-  }
-
   async updateUserRole(userId, role) {
     return this.makeRequest(`/user/${userId}/role`, 'PATCH', { role });
   }
@@ -866,14 +856,6 @@ class RepsonaMCPServer {
               properties: {
                 page: { type: 'number', description: 'ページ番号（1が最初）' },
               },
-            },
-          },
-          {
-            name: 'get_members',
-            description: 'メンバーの一覧を取得します',
-            inputSchema: {
-              type: 'object',
-              properties: {},
             },
           },
           {
@@ -1478,17 +1460,6 @@ class RepsonaMCPServer {
                 {
                   type: 'text',
                   text: JSON.stringify(feed, null, 2),
-                },
-              ],
-            };
-
-          case 'get_members':
-            const members = await this.repsonaAPI.getMembers();
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: JSON.stringify(members, null, 2),
                 },
               ],
             };
