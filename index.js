@@ -16,6 +16,48 @@ console.log = () => {};
 dotenv.config();
 console.log = originalLog;
 
+// 日付処理ヘルパー関数
+function parseDate(dateInput) {
+  if (!dateInput) return undefined;
+  
+  // 数値の場合はそのまま返す（ミリ秒タイムスタンプ）
+  if (typeof dateInput === 'number') {
+    return dateInput;
+  }
+  
+  // 文字列の場合
+  if (typeof dateInput === 'string') {
+    const now = new Date();
+    const lowerInput = dateInput.toLowerCase();
+    
+    // 相対的な日付（日本時間の0時0分0秒に設定）
+    if (lowerInput === '今日' || lowerInput === 'today') {
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      return today.getTime();
+    }
+    if (lowerInput === '明日' || lowerInput === 'tomorrow') {
+      const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+      return tomorrow.getTime();
+    }
+    if (lowerInput === '明後日' || lowerInput === 'day after tomorrow') {
+      const dayAfter = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 0, 0, 0);
+      return dayAfter.getTime();
+    }
+    if (lowerInput === '来週' || lowerInput === 'next week') {
+      const nextWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 0, 0, 0);
+      return nextWeek.getTime();
+    }
+    
+    // ISO形式やその他の日付文字列
+    const parsed = new Date(dateInput);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.getTime();
+    }
+  }
+  
+  return undefined;
+}
+
 class RepsonaAPI {
   constructor(config) {
     this.config = config;
@@ -381,8 +423,18 @@ class RepsonaMCPServer {
                 projectId: { type: 'string', description: 'プロジェクトID' },
                 name: { type: 'string', description: 'タスク名' },
                 description: { type: 'string', description: '内容' },
-                startDate: { type: 'number', description: '開始日時' },
-                dueDate: { type: 'number', description: '期限' },
+                startDate: { 
+                  oneOf: [
+                    { type: 'number', description: '開始日時（ミリ秒タイムスタンプ）' },
+                    { type: 'string', description: '開始日時（"今日", "明日", "来週", ISO形式など）' }
+                  ]
+                },
+                dueDate: { 
+                  oneOf: [
+                    { type: 'number', description: '期限（ミリ秒タイムスタンプ）' },
+                    { type: 'string', description: '期限（"今日", "明日", "来週", ISO形式など）' }
+                  ]
+                },
                 status: { type: 'number', description: 'ステータスID' },
                 tags: { type: 'array', items: { type: 'number' }, description: 'タグID' },
                 priority: { type: 'number', enum: [1, 2, 3], description: '優先度' },
@@ -405,8 +457,18 @@ class RepsonaMCPServer {
                 taskId: { type: 'string', description: 'タスクID' },
                 name: { type: 'string', description: 'タスク名' },
                 description: { type: 'string', description: '内容' },
-                startDate: { type: 'number', description: '開始日時' },
-                dueDate: { type: 'number', description: '期限' },
+                startDate: { 
+                  oneOf: [
+                    { type: 'number', description: '開始日時（ミリ秒タイムスタンプ）' },
+                    { type: 'string', description: '開始日時（"今日", "明日", "来週", ISO形式など）' }
+                  ]
+                },
+                dueDate: { 
+                  oneOf: [
+                    { type: 'number', description: '期限（ミリ秒タイムスタンプ）' },
+                    { type: 'string', description: '期限（"今日", "明日", "来週", ISO形式など）' }
+                  ]
+                },
                 status: { type: 'number', description: 'ステータスID' },
                 tags: { type: 'array', items: { type: 'number' }, description: 'タグID' },
                 priority: { type: 'number', enum: [1, 2, 3], description: '優先度' },
@@ -1040,6 +1102,13 @@ class RepsonaMCPServer {
 
           case 'create_task':
             const { projectId: createProjectId, ...taskData } = args;
+            // 日付フィールドを処理
+            if (taskData.startDate) {
+              taskData.startDate = parseDate(taskData.startDate);
+            }
+            if (taskData.dueDate) {
+              taskData.dueDate = parseDate(taskData.dueDate);
+            }
             const newTask = await this.repsonaAPI.createTask(createProjectId, taskData);
             return {
               content: [
@@ -1052,6 +1121,13 @@ class RepsonaMCPServer {
 
           case 'update_task':
             const { projectId: updateProjectId, taskId: updateTaskId, ...updates } = args;
+            // 日付フィールドを処理
+            if (updates.startDate) {
+              updates.startDate = parseDate(updates.startDate);
+            }
+            if (updates.dueDate) {
+              updates.dueDate = parseDate(updates.dueDate);
+            }
             const updatedTask = await this.repsonaAPI.updateTask(updateProjectId, updateTaskId, updates);
             return {
               content: [
