@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -13,6 +15,104 @@ const originalLog = console.log;
 console.log = () => {};
 dotenv.config();
 console.log = originalLog;
+
+// 日付処理ヘルパー関数
+function parseDate(dateInput) {
+  if (!dateInput) return undefined;
+  
+  // 数値の場合はそのまま返す（ミリ秒タイムスタンプ）
+  if (typeof dateInput === 'number') {
+    return dateInput;
+  }
+  
+  // 文字列の場合
+  if (typeof dateInput === 'string') {
+    const now = new Date();
+    const lowerInput = dateInput.toLowerCase().trim();
+    
+    // 基本的な相対日付
+    if (lowerInput === '今日' || lowerInput === 'today') {
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      return today.getTime();
+    }
+    if (lowerInput === '明日' || lowerInput === 'tomorrow') {
+      const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+      return tomorrow.getTime();
+    }
+    if (lowerInput === '明後日' || lowerInput === 'day after tomorrow') {
+      const dayAfter = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 0, 0, 0);
+      return dayAfter.getTime();
+    }
+    
+    // X日後のパターン
+    const daysPattern = /^(\d+)日後$/;
+    const daysMatch = lowerInput.match(daysPattern);
+    if (daysMatch) {
+      const days = parseInt(daysMatch[1], 10);
+      const futureDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + days, 0, 0, 0);
+      return futureDate.getTime();
+    }
+    
+    // 週関連
+    if (lowerInput === '来週' || lowerInput === 'next week') {
+      const nextWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 0, 0, 0);
+      return nextWeek.getTime();
+    }
+    if (lowerInput === '来週末' || lowerInput === 'next weekend') {
+      // 来週の日曜日を取得
+      const daysUntilNextWeek = 7 - now.getDay(); // 今週の日曜日まで
+      const nextSunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilNextWeek + 7, 0, 0, 0);
+      return nextSunday.getTime();
+    }
+    
+    // 月関連
+    if (lowerInput === '来月' || lowerInput === 'next month') {
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0);
+      return nextMonth.getTime();
+    }
+    if (lowerInput === '来月末' || lowerInput === 'end of next month') {
+      // 来月の最終日
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0, 0, 0, 0);
+      return nextMonth.getTime();
+    }
+    
+    // 今月末
+    if (lowerInput === '今月末' || lowerInput === 'end of this month') {
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 0, 0, 0);
+      return endOfMonth.getTime();
+    }
+    
+    // 週末
+    if (lowerInput === '週末' || lowerInput === 'weekend') {
+      // 今週の日曜日
+      const daysUntilSunday = 7 - now.getDay();
+      const thisSunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday, 0, 0, 0);
+      return thisSunday.getTime();
+    }
+    
+    // 曜日指定（来週の○曜日）
+    const weekdayPattern = /^来週の?([月火水木金土日])曜日?$/;
+    const weekdayMatch = lowerInput.match(weekdayPattern);
+    if (weekdayMatch) {
+      const weekdays = { '月': 1, '火': 2, '水': 3, '木': 4, '金': 5, '土': 6, '日': 0 };
+      const targetDay = weekdays[weekdayMatch[1]];
+      if (targetDay !== undefined) {
+        const daysUntilNextWeek = 7 - now.getDay(); // 今週の日曜日まで
+        const daysFromNextSunday = targetDay === 0 ? 0 : targetDay; // 来週の目標曜日まで
+        const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilNextWeek + daysFromNextSunday, 0, 0, 0);
+        return targetDate.getTime();
+      }
+    }
+    
+    // ISO形式やその他の日付文字列
+    const parsed = new Date(dateInput);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.getTime();
+    }
+  }
+  
+  return undefined;
+}
 
 class RepsonaAPI {
   constructor(config) {
@@ -379,8 +479,18 @@ class RepsonaMCPServer {
                 projectId: { type: 'string', description: 'プロジェクトID' },
                 name: { type: 'string', description: 'タスク名' },
                 description: { type: 'string', description: '内容' },
-                startDate: { type: 'number', description: '開始日時' },
-                dueDate: { type: 'number', description: '期限' },
+                startDate: { 
+                  oneOf: [
+                    { type: 'number', description: '開始日時（ミリ秒タイムスタンプ）' },
+                    { type: 'string', description: '開始日時（"今日", "明日", "3日後", "来週末", "来月末", "来週の月曜日", ISO形式など）' }
+                  ]
+                },
+                dueDate: { 
+                  oneOf: [
+                    { type: 'number', description: '期限（ミリ秒タイムスタンプ）' },
+                    { type: 'string', description: '期限（"今日", "明日", "3日後", "来週末", "来月末", "来週の月曜日", ISO形式など）' }
+                  ]
+                },
                 status: { type: 'number', description: 'ステータスID' },
                 tags: { type: 'array', items: { type: 'number' }, description: 'タグID' },
                 priority: { type: 'number', enum: [1, 2, 3], description: '優先度' },
@@ -403,8 +513,18 @@ class RepsonaMCPServer {
                 taskId: { type: 'string', description: 'タスクID' },
                 name: { type: 'string', description: 'タスク名' },
                 description: { type: 'string', description: '内容' },
-                startDate: { type: 'number', description: '開始日時' },
-                dueDate: { type: 'number', description: '期限' },
+                startDate: { 
+                  oneOf: [
+                    { type: 'number', description: '開始日時（ミリ秒タイムスタンプ）' },
+                    { type: 'string', description: '開始日時（"今日", "明日", "3日後", "来週末", "来月末", "来週の月曜日", ISO形式など）' }
+                  ]
+                },
+                dueDate: { 
+                  oneOf: [
+                    { type: 'number', description: '期限（ミリ秒タイムスタンプ）' },
+                    { type: 'string', description: '期限（"今日", "明日", "3日後", "来週末", "来月末", "来週の月曜日", ISO形式など）' }
+                  ]
+                },
                 status: { type: 'number', description: 'ステータスID' },
                 tags: { type: 'array', items: { type: 'number' }, description: 'タグID' },
                 priority: { type: 'number', enum: [1, 2, 3], description: '優先度' },
@@ -1038,6 +1158,13 @@ class RepsonaMCPServer {
 
           case 'create_task':
             const { projectId: createProjectId, ...taskData } = args;
+            // 日付フィールドを処理
+            if (taskData.startDate) {
+              taskData.startDate = parseDate(taskData.startDate);
+            }
+            if (taskData.dueDate) {
+              taskData.dueDate = parseDate(taskData.dueDate);
+            }
             const newTask = await this.repsonaAPI.createTask(createProjectId, taskData);
             return {
               content: [
@@ -1050,6 +1177,13 @@ class RepsonaMCPServer {
 
           case 'update_task':
             const { projectId: updateProjectId, taskId: updateTaskId, ...updates } = args;
+            // 日付フィールドを処理
+            if (updates.startDate) {
+              updates.startDate = parseDate(updates.startDate);
+            }
+            if (updates.dueDate) {
+              updates.dueDate = parseDate(updates.dueDate);
+            }
             const updatedTask = await this.repsonaAPI.updateTask(updateProjectId, updateTaskId, updates);
             return {
               content: [

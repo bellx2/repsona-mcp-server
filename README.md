@@ -2,72 +2,56 @@
 
 このプロジェクトは、[Repsona](https://repsona.com/)と連携するMCP（Model Context Protocol）サーバーです。
 
-## セットアップ
+このMCPサーバーは、RepsonaのAPIを介してタスク管理、プロジェクト管理、ユーザー管理などの機能を提供します。Claude DesktopなどのMCP対応アプリケーションと連携して、Repsonaの機能を利用できます。
 
-### 1. 依存関係のインストール
-```bash
-npm install
-```
+## 使用例
 
-### 2. 環境変数の設定
-`.env.example`を`.env`にコピーして、必要な値を設定してください：
+MCPサーバーを設定後、以下のようなリクエストが可能です：
 
-```bash
-cp .env.example .env
-```
+- "Repsonaで今日のタスクを教えて"
+- "Repsonaで新しいタスクを作成して"
+- "Repsonaでプロジェクトの一覧を見せて"
+- "Repsonaで特定のノートを更新して"
+- "Repsonaで受信トレイの未読件数を教えて"
+- "Repsonaで受信トレイを一括既読にして"
+- "タグ一覧を見せて"
 
-`.env`ファイルを編集：
-```
-REPSONA_SPACE_ID=your_space_id
-REPSONA_API_KEY=your_api_key
-```
+## 設定
 
-### 3. サーバーの起動
-```bash
-npm run start
-```
-
-または開発モードで：
-```bash
-npm run dev
-```
-
-## Desktop Extensions (DXT) での利用
-
-### DXTファイルのビルド
-
-DXT（Desktop Extensions）として配布するためのファイルを作成する方法：
-
-```bash
-# DXTファイルをビルド
-npx dxt build
-
-# または、手動でzipファイルを作成
-zip -r repsona-mcp-server.dxt manifest.json index.js package.json package-lock.json node_modules/
-```
-
-### DXTファイルのインストール
-
-1. ビルドされた `repsona-mcp-server.dxt` ファイルを取得
-2. Claude Desktop で DXT ファイルをインストール
-3. 設定画面でRepsona Space IDとAPI Keyを入力
-
-## Claude Desktop での設定
+### Claude Desktop
 
 Claude Desktop でこのMCPサーバーを使用するには、設定ファイルに以下を追加してください：
 
-### macOS
+#### macOS
 `~/Library/Application\ Support/Claude/claude_desktop_config.json`
 
-### Windows
+#### Windows
 `%APPDATA%/Claude/claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "repsona": {
-      "command": "node",
-      "args": ["/path/to/your/repsona-mcp-server/index.js"],
+      "command": "npx",
+      "args": ["-y", "@bellx2/repsona-mcp-server"],
+      "env": {
+        "REPSONA_SPACE_ID": "your_space_id",
+        "REPSONA_API_KEY": "your_api_key"
+      }
+    }
+  }
+}
+```
+
+### VSCode
+
+VSCodeでこのMCPサーバーを使用するには、以下の設定を`settings.json`に追加してください：
+```json
+{
+  "mcpServers": {
+    "repsona": {
+      "command": "npx",
+      "args": ["-y", "@bellx2/repsona-mcp-server"],
       "env": {
         "REPSONA_SPACE_ID": "your_space_id",
         "REPSONA_API_KEY": "your_api_key"
@@ -78,6 +62,8 @@ Claude Desktop でこのMCPサーバーを使用するには、設定ファイ�
 ```
 
 ## 利用可能なツール
+
+https://repsona.com/ja/api
 
 ### タスク関連
 - `get_tasks`: 指定したプロジェクトのタスク一覧を取得
@@ -156,49 +142,3 @@ Claude Desktop でこのMCPサーバーを使用するには、設定ファイ�
 - `repsona://space`: スペース情報
 - `repsona://tags`: タグ一覧
 - `repsona://inbox-unread-count`: 受信トレイ未読件数
-
-## 使用例
-
-Claude Desktop でこのMCPサーバーを設定後、以下のようなリクエストが可能です：
-
-- "今日のタスクを教えて"
-- "新しいタスクを作成して"
-- "プロジェクトの一覧を見せて"
-- "特定のノートを更新して"
-- "受信トレイの未読件数を教えて"
-- "受信トレイを一括既読にして"
-- "タグ一覧を見せて"
-
-## テスト方法
-
-### MCP Inspector を使用したテスト（推奨）
-
-MCP Inspector は、MCPサーバーの開発・デバッグ専用ツールです。
-
-```bash
-# 依存関係をインストール
-npm install
-
-# 環境変数を設定
-cp .env.example .env
-# .envファイルを編集してAPIキーを設定
-
-# MCP Inspector を起動
-npm run inspect
-```
-
-MCP Inspector では以下の機能を使用できます：
-- ツールとリソースの一覧表示
-- 各ツールの実行とレスポンス確認
-- エラーハンドリングの確認
-- リアルタイムでのサーバーテスト
-
-### 手動テスト
-
-```bash
-# サーバーを直接起動
-npm run start
-
-# または開発モードで起動
-npm run dev
-```
