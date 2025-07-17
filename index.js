@@ -28,9 +28,9 @@ function parseDate(dateInput) {
   // 文字列の場合
   if (typeof dateInput === 'string') {
     const now = new Date();
-    const lowerInput = dateInput.toLowerCase();
+    const lowerInput = dateInput.toLowerCase().trim();
     
-    // 相対的な日付（日本時間の0時0分0秒に設定）
+    // 基本的な相対日付
     if (lowerInput === '今日' || lowerInput === 'today') {
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
       return today.getTime();
@@ -43,9 +43,65 @@ function parseDate(dateInput) {
       const dayAfter = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 0, 0, 0);
       return dayAfter.getTime();
     }
+    
+    // X日後のパターン
+    const daysPattern = /^(\d+)日後$/;
+    const daysMatch = lowerInput.match(daysPattern);
+    if (daysMatch) {
+      const days = parseInt(daysMatch[1], 10);
+      const futureDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + days, 0, 0, 0);
+      return futureDate.getTime();
+    }
+    
+    // 週関連
     if (lowerInput === '来週' || lowerInput === 'next week') {
       const nextWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 0, 0, 0);
       return nextWeek.getTime();
+    }
+    if (lowerInput === '来週末' || lowerInput === 'next weekend') {
+      // 来週の日曜日を取得
+      const daysUntilNextWeek = 7 - now.getDay(); // 今週の日曜日まで
+      const nextSunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilNextWeek + 7, 0, 0, 0);
+      return nextSunday.getTime();
+    }
+    
+    // 月関連
+    if (lowerInput === '来月' || lowerInput === 'next month') {
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0);
+      return nextMonth.getTime();
+    }
+    if (lowerInput === '来月末' || lowerInput === 'end of next month') {
+      // 来月の最終日
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0, 0, 0, 0);
+      return nextMonth.getTime();
+    }
+    
+    // 今月末
+    if (lowerInput === '今月末' || lowerInput === 'end of this month') {
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 0, 0, 0);
+      return endOfMonth.getTime();
+    }
+    
+    // 週末
+    if (lowerInput === '週末' || lowerInput === 'weekend') {
+      // 今週の日曜日
+      const daysUntilSunday = 7 - now.getDay();
+      const thisSunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday, 0, 0, 0);
+      return thisSunday.getTime();
+    }
+    
+    // 曜日指定（来週の○曜日）
+    const weekdayPattern = /^来週の?([月火水木金土日])曜日?$/;
+    const weekdayMatch = lowerInput.match(weekdayPattern);
+    if (weekdayMatch) {
+      const weekdays = { '月': 1, '火': 2, '水': 3, '木': 4, '金': 5, '土': 6, '日': 0 };
+      const targetDay = weekdays[weekdayMatch[1]];
+      if (targetDay !== undefined) {
+        const daysUntilNextWeek = 7 - now.getDay(); // 今週の日曜日まで
+        const daysFromNextSunday = targetDay === 0 ? 0 : targetDay; // 来週の目標曜日まで
+        const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilNextWeek + daysFromNextSunday, 0, 0, 0);
+        return targetDate.getTime();
+      }
     }
     
     // ISO形式やその他の日付文字列
@@ -426,13 +482,13 @@ class RepsonaMCPServer {
                 startDate: { 
                   oneOf: [
                     { type: 'number', description: '開始日時（ミリ秒タイムスタンプ）' },
-                    { type: 'string', description: '開始日時（"今日", "明日", "来週", ISO形式など）' }
+                    { type: 'string', description: '開始日時（"今日", "明日", "3日後", "来週末", "来月末", "来週の月曜日", ISO形式など）' }
                   ]
                 },
                 dueDate: { 
                   oneOf: [
                     { type: 'number', description: '期限（ミリ秒タイムスタンプ）' },
-                    { type: 'string', description: '期限（"今日", "明日", "来週", ISO形式など）' }
+                    { type: 'string', description: '期限（"今日", "明日", "3日後", "来週末", "来月末", "来週の月曜日", ISO形式など）' }
                   ]
                 },
                 status: { type: 'number', description: 'ステータスID' },
@@ -460,13 +516,13 @@ class RepsonaMCPServer {
                 startDate: { 
                   oneOf: [
                     { type: 'number', description: '開始日時（ミリ秒タイムスタンプ）' },
-                    { type: 'string', description: '開始日時（"今日", "明日", "来週", ISO形式など）' }
+                    { type: 'string', description: '開始日時（"今日", "明日", "3日後", "来週末", "来月末", "来週の月曜日", ISO形式など）' }
                   ]
                 },
                 dueDate: { 
                   oneOf: [
                     { type: 'number', description: '期限（ミリ秒タイムスタンプ）' },
-                    { type: 'string', description: '期限（"今日", "明日", "来週", ISO形式など）' }
+                    { type: 'string', description: '期限（"今日", "明日", "3日後", "来週末", "来月末", "来週の月曜日", ISO形式など）' }
                   ]
                 },
                 status: { type: 'number', description: 'ステータスID' },
